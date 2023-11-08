@@ -11,41 +11,72 @@ import matplotlib.pyplot as plt
 
 
 
+def read_and_prepare_world_co2_data():
+    """ this function reads csv and processes the data and return new filtered dataframe """
+    
+    #read csv using pandas
+    data = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv",
+                   skiprows=[0, 1, 2, 3])
 
-data = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv",\
-                   skiprows=[0,1,2,3])
+    years_column_list  = np.arange(1990, 2021).astype(str)
+    all_cols_list = ["Country Name"] + list(years_column_list)
 
-years_cols = np.arange(1990,2021).astype(str)
-all_cols =  ["Country Name"] + list(years_cols)
+    countries = ["China", "United States", "India", "Russian Federation",
+             "Germany", "Brazil"]
 
-#print(data[years_cols])
+    #Filter data: select only specific countries and years
+    df_selected = data.loc[data["Country Name"].isin(countries), all_cols_list]
+   
+    # Transpose
+    df_t = pd.DataFrame.transpose(df_selected)
+    df_t.columns = df_t.iloc[0]
 
-countries = np.array(["China","United States","India","Russian Federation",\
-                      "Germany","Brazil"])
+    #remove first row
+    df_t = df_t[1:]
+    df_t.index = df_t.index.astype(int)
+   
+    # convert data from kiloton to megaton
+    df_t["China megaton"] = df_t["China"]/1000
+    df_t["United States megaton"] = df_t["United States"]/1000
+    df_t["India megaton"] = df_t["India"]/1000
+    df_t["Russian Federation megaton"] = df_t["Russian Federation"]/1000
+    df_t["Germany megaton"] = df_t["Germany"]/1000
+    df_t["Brazil megaton"] = df_t["Brazil"]/1000
+    
+    return df_t
 
-df_selected = data.loc[data["Country Name"].isin(countries),all_cols]
-#Transpose
-df_t = pd.DataFrame.transpose(df_selected)
-df_t.columns = df_t.iloc[0]
+def create_and_save_line_graph(data):
+    """ create line chart and save as image on disk """
+    
+    plt.figure()
+    plt.plot(data.index, data["China megaton"], label="China")
+    plt.plot(data.index, data["United States megaton"], label="United States")
+    plt.plot(data.index, data["India megaton"], label="India")
+    plt.plot(data.index, data["Russian Federation megaton"],
+                                                 label="Russian Federation")
+    plt.plot(data.index, data["Germany megaton"], label="Germany")
+    plt.plot(data.index, data["Brazil megaton"], label="Brazil")
 
-df_t = df_t[1:]
+    plt.title("CO2 emmition")
+    plt.xlabel("Years")
+    plt.ylabel("Megatons")
 
-plt.figure()
+    plt.xticks(np.arange(min(data.index), max(data.index)+1, 5.0))
+    plt.xlim(min(data.index), max(data.index))
+    plt.legend()
+    plt.savefig("fig1.png")
 
-#df_t["Date"] = pd.to_numeric(df_t["Country Name"])
-#plt.step(200,2020)
 
-plt.plot(df_t.index, df_t["China"], label="China")
-plt.plot(df_t.index, df_t["United States"], label="United States")
-plt.plot(df_t.index, df_t["India"], label="India")
-plt.plot(df_t.index, df_t["Russian Federation"], label="Russian Federation")
-plt.plot(df_t.index, df_t["Germany"], label="Germany")
-plt.plot(df_t.index, df_t["Brazil"], label="Brazil")
 
-plt.title("CO2 emmition")
-plt.xlabel("Years")
-plt.ylabel("CO2(KT)")
-plt.xticks(rotation=90, size=8)
+    
 
-plt.legend()
+#Main Program
+data = read_and_prepare_world_co2_data();
+create_and_save_line_graph(data)
+
+
+
+
+
+#Display graph
 plt.show()
