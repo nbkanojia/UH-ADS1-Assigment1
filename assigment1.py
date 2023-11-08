@@ -12,20 +12,22 @@ import matplotlib.pyplot as plt
 
 
 def read_and_prepare_world_co2_data():
-    """ this function reads csv and processes the data and return new filtered dataframe """
+    """ this function reads csv and processes the data and return new \
+        filtered dataframe """
     
     #read csv using pandas
-    data = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv",
+    data = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv", \
                    skiprows=[0, 1, 2, 3])
 
     years_column_list  = np.arange(1990, 2021).astype(str)
     all_cols_list = ["Country Name"] + list(years_column_list)
 
-    countries = ["China", "United States", "India", "Russian Federation",
+    countries = ["China", "United States", "India", "Russian Federation", \
              "Germany", "Brazil"]
 
     #Filter data: select only specific countries and years
-    df_selected = data.loc[data["Country Name"].isin(countries), all_cols_list]
+    df_selected = data.loc[data["Country Name"].isin(countries), \
+                           all_cols_list]
    
     # Transpose
     df_t = pd.DataFrame.transpose(df_selected)
@@ -34,7 +36,7 @@ def read_and_prepare_world_co2_data():
     #remove first row
     df_t = df_t[1:]
     df_t.index = df_t.index.astype(int)
-   
+
     # convert data from kiloton to megaton
     df_t["China megaton"] = df_t["China"]/1000
     df_t["United States megaton"] = df_t["United States"]/1000
@@ -48,6 +50,7 @@ def read_and_prepare_world_co2_data():
 def create_and_save_line_graph(data):
     """ create line chart and save as image on disk """
     
+    #start creating line chart
     plt.figure()
     plt.plot(data.index, data["China megaton"], label="China")
     plt.plot(data.index, data["United States megaton"], label="United States")
@@ -57,23 +60,41 @@ def create_and_save_line_graph(data):
     plt.plot(data.index, data["Germany megaton"], label="Germany")
     plt.plot(data.index, data["Brazil megaton"], label="Brazil")
 
+    #set label and legend
     plt.title("CO2 emmition")
     plt.xlabel("Years")
     plt.ylabel("Megatons")
-
     plt.xticks(np.arange(min(data.index), max(data.index)+1, 5.0))
     plt.xlim(min(data.index), max(data.index))
     plt.legend()
+    
+    #save the graph in disk
     plt.savefig("fig1.png")
 
+def create_and_save_pi_chart(data):
+    
+    countries = ["China", "United States", "India", "Russian Federation", \
+                 "Germany", "Brazil"]
+    #start creating line chart
+    plt.figure()
 
+    #use subplot to show two graph in single graph
+    plt.subplot(1, 2, 1)
+    plt.pie((data.loc[data.index==1990, countries].values[0]), labels=countries)
+    plt.title("1990")
 
+    plt.subplot(1, 2, 2)
+    plt.pie(data.loc[data.index==2020, countries].values[0], labels=countries)
+    plt.title("2020")
+    
+    #save the graph in disk
+    plt.savefig("fig2.png")
     
 
 #Main Program
 data = read_and_prepare_world_co2_data();
 create_and_save_line_graph(data)
-
+create_and_save_pi_chart(data)
 
 
 
