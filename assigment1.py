@@ -69,7 +69,6 @@ def create_and_save_line_graph(data):
     """ create line chart and save image on disk """
 
     # start creating line chart
-    plt.figure()
     plt.figure(figsize=(10, 6))
     plt.plot(data.index, data["China megaton"], label="China")
     plt.plot(data.index, data["United States megaton"], label="United States")
@@ -80,7 +79,7 @@ def create_and_save_line_graph(data):
     plt.plot(data.index, data["Brazil megaton"], label="Brazil")
 
     # set label and legend
-    plt.title("CO2 emmition")
+    plt.title("CO2 emission")
     plt.xlabel("Years")
     plt.ylabel("Megatons")
     plt.xticks(np.arange(min(data.index), max(data.index)+1, 5.0))
@@ -92,16 +91,15 @@ def create_and_save_line_graph(data):
 
 
 def create_and_save_pi_chart(data):
-    """ create two pi chart using subplot and save image on disk """
+    """ create two pi charts using subplot and save image on disk """
 
     countries = ["China", "United States", "India", "Russian Federation",
                  "Germany", "Brazil"]
-    # start creating line chart
-    plt.figure()
+    # start creating a line chart
     plt.figure(figsize=(10, 6))
 
     print(data.loc[data.index == 1990, countries].values.flatten().tolist())
-    # use subplot to show two graph in single graph
+    # use subplot to show two graphs in single graph
     plt.subplot(1, 2, 1)
     plt.pie(data.loc[data.index == 1990, countries].values.flatten().tolist(),
             labels=countries, autopct='%1.0f%%', pctdistance=1.1,
@@ -113,26 +111,25 @@ def create_and_save_pi_chart(data):
             labels=countries, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
     plt.title("2020")
-    # save the graph in disk
-    plt.suptitle(' CO2 emmition ', fontsize=15)
+    # save the graph on disk
+    plt.suptitle(' CO2 emission ', fontsize=15)
     plt.savefig("fig2.png")
 
 
 def creat_and_save_bar_chart(data):
-    """ create bar chart to compare countries co2 emmition and save the \
+    """ create bar chart to compare countries co2 emission and save the \
         chart on disk"""
-    # get unique years for x-axis
+    # get unique years for the x-axis
     years = data["year"].unique()
     # prepare y-axis data
     phev_data = data.loc[data["powertrain"] == "PHEV"]
     bev_data = data.loc[data["powertrain"] == "BEV"]
 
-    # start creating line chart
-    plt.figure()
+    # start creating a line chart
     plt.figure(figsize=(10, 6))
-    p1 = plt.bar(years, phev_data["value_million"], label="PHEV")
+    p1 = plt.bar(years, phev_data["value_million"], label="PHEV(plug-in hybrid electric vehicles)")
     p2 = plt.bar(years, bev_data["value_million"],
-                 bottom=phev_data["value_million"], label="BEV")
+                 bottom=phev_data["value_million"], label="BEV(battery electric vehicles)")
 
     # set label and legend
     plt.title("EV sales, World")
@@ -145,16 +142,16 @@ def creat_and_save_bar_chart(data):
 ##################### Main Program ##########################
 
 
-# get co2 emmition data
+# get co2 emission data
 co2_data = read_and_prepare_world_co2_data()
-# create ling graph from co2 emmition data
+# create a line graph from co2 emission data
 create_and_save_line_graph(co2_data)
-# create pi chart to represent  co2 emmition in years 1990 and 2020
+# create pie chart to represent  co2 emission in years 1990 and 2020
 create_and_save_pi_chart(co2_data)
 
 # get ev car sale data
 ev_data = read_and_prepare_ev_data()
-# create bar chart to represent the ev data
+# create a bar chart to represent the ev data
 creat_and_save_bar_chart(ev_data)
 
 
