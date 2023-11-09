@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 def read_and_prepare_world_co2_data():
-    """ this function reads csv and processes the data and return new \
+    """ This function reads csv and processes the data and return new \
         filtered dataframe """
 
     # read csv using pandas
@@ -36,19 +36,15 @@ def read_and_prepare_world_co2_data():
     df_t = df_t[1:]
     df_t.index = df_t.index.astype(int)
 
-    # convert data from kiloton to megaton
-    df_t["China megaton"] = df_t["China"]/1000
-    df_t["United States megaton"] = df_t["United States"]/1000
-    df_t["India megaton"] = df_t["India"]/1000
-    df_t["Russian Federation megaton"] = df_t["Russian Federation"]/1000
-    df_t["Germany megaton"] = df_t["Germany"]/1000
-    df_t["Brazil megaton"] = df_t["Brazil"]/1000
+    # scale data from kiloton to megaton
+    for c in countries:
+        df_t[c + " megaton"] = df_t[c]/1000
 
     return df_t
 
 
 def read_and_prepare_ev_data():
-    """ this function reads csv and processes the data and return new \
+    """ This function reads csv and processes the data and return new \
         filtered dataframe """
 
     # read csv using pandas
@@ -58,15 +54,18 @@ def read_and_prepare_ev_data():
                            & (data["parameter"] == "EV sales")
                            & (data["mode"] == "Cars")
                            & (data["powertrain"].isin(["PHEV", "BEV"]))
-                           & (data["unit"] == "Vehicles"), ["powertrain", "year", "value"]]
+                           & (data["unit"] == "Vehicles"),
+                           ["powertrain", "year", "value"]]
 
+    # scale the number of ev sales into millions
     df_selected["value_million"] = df_selected["value"]/1000000
 
     return df_selected
 
 
 def create_and_save_line_graph(data):
-    """ create line chart and save image on disk """
+    """ This function takes data as an argument and creates a line chart for \
+        co2 emission using matplotlib and save png image on disk """
 
     # start creating line chart
     plt.figure(figsize=(10, 6))
@@ -91,34 +90,38 @@ def create_and_save_line_graph(data):
 
 
 def create_and_save_pi_chart(data):
-    """ create two pi charts using subplot and save image on disk """
+    """ This function takes data as an argument and creates two pi charts for \
+        co2 emission using matplotlib and save png image on disk """
 
     countries = ["China", "United States", "India", "Russian Federation",
                  "Germany", "Brazil"]
     # start creating a line chart
     plt.figure(figsize=(10, 6))
 
-    print(data.loc[data.index == 1990, countries].values.flatten().tolist())
-    # use subplot to show two graphs in single graph
+    # use a subplot to show two graphs in a single graph
+    # create pie chart one
     plt.subplot(1, 2, 1)
     plt.pie(data.loc[data.index == 1990, countries].values.flatten().tolist(),
             labels=countries, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
     plt.title("1990")
 
+    # create pie chart two
     plt.subplot(1, 2, 2)
     plt.pie(data.loc[data.index == 2020, countries].values.flatten().tolist(),
             labels=countries, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
     plt.title("2020")
-    # save the graph on disk
     plt.suptitle(' CO2 emission ', fontsize=15)
+
+    # save the graph on disk
     plt.savefig("fig2.png")
 
 
 def creat_and_save_bar_chart(data):
-    """ create bar chart to compare countries co2 emission and save the \
-        chart on disk"""
+    """ This function takes data as an argument and creates a bar chart for \
+        ev sale using matplotlib and save png image on disk """
+
     # get unique years for the x-axis
     years = data["year"].unique()
     # prepare y-axis data
@@ -127,9 +130,11 @@ def creat_and_save_bar_chart(data):
 
     # start creating a line chart
     plt.figure(figsize=(10, 6))
-    p1 = plt.bar(years, phev_data["value_million"], label="PHEV(plug-in hybrid electric vehicles)")
-    p2 = plt.bar(years, bev_data["value_million"],
-                 bottom=phev_data["value_million"], label="BEV(battery electric vehicles)")
+    plt.bar(years, phev_data["value_million"],
+            label="PHEV(plug-in hybrid electric vehicles)")
+    plt.bar(years, bev_data["value_million"],
+            bottom=phev_data["value_million"],
+            label="BEV(battery electric vehicles)")
 
     # set label and legend
     plt.title("EV sales, World")
@@ -137,10 +142,11 @@ def creat_and_save_bar_chart(data):
     plt.ylabel("Vehicles(million)")
     plt.legend()
 
+    # save the graph on disk
     plt.savefig("fig3.png")
 
-##################### Main Program ##########################
 
+##################### Main Program ##########################
 
 # get co2 emission data
 co2_data = read_and_prepare_world_co2_data()
@@ -153,7 +159,6 @@ create_and_save_pi_chart(co2_data)
 ev_data = read_and_prepare_ev_data()
 # create a bar chart to represent the ev data
 creat_and_save_bar_chart(ev_data)
-
 
 # Display graph
 plt.show()
