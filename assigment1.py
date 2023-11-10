@@ -10,19 +10,33 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def read_and_prepare_world_co2_data():
-    """ This function reads csv and processes the data and return new \
-        filtered dataframe """
+def read_and_prepare_world_co2_data(countries, start_from_yeart, end_to_year):
+    """
+    This function reads csv and processes and prepare the co2 emission data
+
+    Parameters
+    ----------
+    countries : list
+        select countries from dataset.
+    start_from_yeart : int
+         starting from year.
+    end_to_year : int
+        end to year .
+
+    Returns
+    -------
+    pandas dataframe
+        return new filtered data.
+
+    """
 
     # read csv using pandas
     data = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv",
                        skiprows=[0, 1, 2, 3])
 
-    years_column_list = np.arange(1990, 2021).astype(str)
+    years_column_list = np.arange(
+        start_from_yeart, (end_to_year+1)).astype(str)
     all_cols_list = ["Country Name"] + list(years_column_list)
-
-    countries = ["China", "United States", "India", "Russian Federation",
-                 "Germany", "Brazil"]
 
     # Filter data: select only specific countries and years
     df_selected = data.loc[data["Country Name"].isin(countries),
@@ -43,18 +57,38 @@ def read_and_prepare_world_co2_data():
     return df_t
 
 
-def read_and_prepare_ev_data():
-    """ This function reads csv and processes the data and return new \
-        filtered dataframe """
+def read_and_prepare_ev_data(region, start_from_yeart, end_to_year):
+    """
+    This function reads csv and processes and prepare the ev sale data
+
+    Parameters
+    ----------
+    region : string
+        Country name or type world to get global sales data.
+    start_from_yeart : int
+         starting from year.
+    end_to_year : int
+        end to year .
+
+    Returns
+    -------
+    pandas dataframe
+        return new filtered data.
+
+    """
 
     # read csv using pandas
     data = pd.read_csv("IEA-EV-dataEV salesHistoricalCars.csv")
-    df_selected = data.loc[(data["region"] == "World")
+
+    # filter data and select only required column
+    df_selected = data.loc[(data["region"] == region)
                            & (data["category"] == "Historical")
                            & (data["parameter"] == "EV sales")
                            & (data["mode"] == "Cars")
                            & (data["powertrain"].isin(["PHEV", "BEV"]))
-                           & (data["unit"] == "Vehicles"),
+                           & (data["unit"] == "Vehicles")
+                           & (data["year"] >= start_from_yeart)
+                           & (data["year"] <= end_to_year),
                            ["powertrain", "year", "value"]]
 
     # scale the number of ev sales into millions
@@ -63,19 +97,28 @@ def read_and_prepare_ev_data():
     return df_selected
 
 
-def create_and_save_line_graph(data):
-    """ This function takes data as an argument and creates a line chart for \
-        co2 emission using matplotlib and save png image on disk """
+def create_and_save_line_graph(data, countries):
+    """
+    This function takes data as an argument and creates a line chart for \
+    co2 emission using matplotlib and save png image on disk
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        data for create line chart.
+    countries : list
+        list of contries to show on graph.
+
+    Returns
+    -------
+    None.
+
+    """
 
     # start creating line chart
     plt.figure(figsize=(10, 6))
-    plt.plot(data.index, data["China megaton"], label="China")
-    plt.plot(data.index, data["United States megaton"], label="United States")
-    plt.plot(data.index, data["India megaton"], label="India")
-    plt.plot(data.index, data["Russian Federation megaton"],
-             label="Russian Federation")
-    plt.plot(data.index, data["Germany megaton"], label="Germany")
-    plt.plot(data.index, data["Brazil megaton"], label="Brazil")
+    for c in countries:
+        plt.plot(data.index, data[c+" megaton"], label=c)
 
     # set label and legend
     plt.title("CO2 emission")
@@ -89,29 +132,45 @@ def create_and_save_line_graph(data):
     plt.savefig("fig1.png")
 
 
-def create_and_save_pi_chart(data):
-    """ This function takes data as an argument and creates two pi charts for \
-        co2 emission using matplotlib and save png image on disk """
+def create_and_save_pi_chart(data, countries, year1, year2):
+    """
+    This function takes data as an argument and creates two pi charts for \
+        co2 emission using matplotlib and save png image on disk
 
-    countries = ["China", "United States", "India", "Russian Federation",
-                 "Germany", "Brazil"]
+    Parameters
+    ----------
+    data : pandas dataframe
+        data for create line chart.
+    countries : list
+        list of contries to show on graph.
+    year1 : int
+        select year for left pie chart.
+    year2 : int
+        select year for right pie chart.
+
+    Returns
+    -------
+    None.
+
+    """
+
     # start creating a line chart
     plt.figure(figsize=(10, 6))
 
     # use a subplot to show two graphs in a single graph
     # create pie chart one
     plt.subplot(1, 2, 1)
-    plt.pie(data.loc[data.index == 1990, countries].values.flatten().tolist(),
+    plt.pie(data.loc[data.index == year1, countries].values.flatten().tolist(),
             labels=countries, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
-    plt.title("1990")
+    plt.title(year1)
 
     # create pie chart two
     plt.subplot(1, 2, 2)
-    plt.pie(data.loc[data.index == 2020, countries].values.flatten().tolist(),
+    plt.pie(data.loc[data.index == year2, countries].values.flatten().tolist(),
             labels=countries, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
-    plt.title("2020")
+    plt.title(year2)
     plt.suptitle(' CO2 emission ', fontsize=15)
 
     # save the graph on disk
@@ -119,8 +178,20 @@ def create_and_save_pi_chart(data):
 
 
 def creat_and_save_bar_chart(data):
-    """ This function takes data as an argument and creates a bar chart for \
-        ev sale using matplotlib and save png image on disk """
+    """
+    This function takes data as an argument and creates a bar chart for \
+        ev sale using matplotlib and save png image on disk
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        data for create bar chart.
+
+    Returns
+    -------
+    None.
+
+    """
 
     # get unique years for the x-axis
     years = data["year"].unique()
@@ -148,15 +219,18 @@ def creat_and_save_bar_chart(data):
 
 ##################### Main Program ##########################
 
+
+countries = ["China", "United States", "India", "Russian Federation",
+             "Germany", "Brazil"]
 # get co2 emission data
-co2_data = read_and_prepare_world_co2_data()
+co2_data = read_and_prepare_world_co2_data(countries, 1990, 2020)
 # create a line graph from co2 emission data
-create_and_save_line_graph(co2_data)
+create_and_save_line_graph(co2_data, countries)
 # create pie chart to represent  co2 emission in years 1990 and 2020
-create_and_save_pi_chart(co2_data)
+create_and_save_pi_chart(co2_data, countries, 1990, 2020)
 
 # get ev car sale data
-ev_data = read_and_prepare_ev_data()
+ev_data = read_and_prepare_ev_data("World", 2010, 2022)
 # create a bar chart to represent the ev data
 creat_and_save_bar_chart(ev_data)
 
