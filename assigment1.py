@@ -10,13 +10,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def read_and_prepare_world_co2_data(countries, start_from_yeart, end_to_year):
+def read_and_prepare_world_co2_data(countrie_list, start_from_yeart,
+                                    end_to_year):
     """
     This function reads csv and processes and prepare the co2 emission data
 
     Parameters
     ----------
-    countries : list
+    countrie_list : list
         select countries from dataset.
     start_from_yeart : int
          starting from year.
@@ -31,15 +32,15 @@ def read_and_prepare_world_co2_data(countries, start_from_yeart, end_to_year):
     """
 
     # read csv using pandas
-    data = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv",
-                       skiprows=[0, 1, 2, 3])
+    co2_df = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv", \
+                       skiprows=3, iterator=False)
 
     years_column_list = np.arange(
         start_from_yeart, (end_to_year+1)).astype(str)
     all_cols_list = ["Country Name"] + list(years_column_list)
 
     # Filter data: select only specific countries and years
-    df_selected = data.loc[data["Country Name"].isin(countries),
+    df_selected = co2_df.loc[co2_df["Country Name"].isin(countrie_list),
                            all_cols_list]
 
     # Transpose
@@ -51,8 +52,8 @@ def read_and_prepare_world_co2_data(countries, start_from_yeart, end_to_year):
     df_t.index = df_t.index.astype(int)
 
     # scale data from kiloton to megaton
-    for c in countries:
-        df_t[c + " megaton"] = df_t[c]/1000
+    for contry in countrie_list:
+        df_t[contry + " megaton"] = df_t[contry]/1000
 
     return df_t
 
@@ -78,17 +79,17 @@ def read_and_prepare_ev_data(region, start_from_yeart, end_to_year):
     """
 
     # read csv using pandas
-    data = pd.read_csv("IEA-EV-dataEV salesHistoricalCars.csv")
+    ev_df = pd.read_csv("IEA-EV-dataEV salesHistoricalCars.csv", iterator=False)
 
     # filter data and select only required column
-    df_selected = data.loc[(data["region"] == region)
-                           & (data["category"] == "Historical")
-                           & (data["parameter"] == "EV sales")
-                           & (data["mode"] == "Cars")
-                           & (data["powertrain"].isin(["PHEV", "BEV"]))
-                           & (data["unit"] == "Vehicles")
-                           & (data["year"] >= start_from_yeart)
-                           & (data["year"] <= end_to_year),
+    df_selected = ev_df.loc[(ev_df["region"] == region)
+                           & (ev_df["category"] == "Historical")
+                           & (ev_df["parameter"] == "EV sales")
+                           & (ev_df["mode"] == "Cars")
+                           & (ev_df["powertrain"].isin(["PHEV", "BEV"]))
+                           & (ev_df["unit"] == "Vehicles")
+                           & (ev_df["year"] >= start_from_yeart)
+                           & (ev_df["year"] <= end_to_year),
                            ["powertrain", "year", "value"]]
 
     # scale the number of ev sales into millions
@@ -97,7 +98,7 @@ def read_and_prepare_ev_data(region, start_from_yeart, end_to_year):
     return df_selected
 
 
-def create_and_save_line_graph(data, countries):
+def create_and_save_line_graph(data, countrie_list):
     """
     This function takes data as an argument and creates a line chart for \
     co2 emission using matplotlib and save png image on disk
@@ -106,7 +107,7 @@ def create_and_save_line_graph(data, countries):
     ----------
     data : pandas dataframe
         data for create line chart.
-    countries : list
+    countrie_list : list
         list of contries to show on graph.
 
     Returns
@@ -117,8 +118,8 @@ def create_and_save_line_graph(data, countries):
 
     # start creating line chart
     plt.figure(figsize=(10, 6))
-    for c in countries:
-        plt.plot(data.index, data[c+" megaton"], label=c)
+    for contry in countrie_list:
+        plt.plot(data.index, data[contry+" megaton"], label=contry)
 
     # set label and legend
     plt.title("CO2 emission")
@@ -132,7 +133,7 @@ def create_and_save_line_graph(data, countries):
     plt.savefig("fig1.png")
 
 
-def create_and_save_pi_chart(data, countries, year1, year2):
+def create_and_save_pi_chart(data, countrie_list, year1, year2):
     """
     This function takes data as an argument and creates two pi charts for \
         co2 emission using matplotlib and save png image on disk
@@ -141,7 +142,7 @@ def create_and_save_pi_chart(data, countries, year1, year2):
     ----------
     data : pandas dataframe
         data for create line chart.
-    countries : list
+    countrie_list : list
         list of contries to show on graph.
     year1 : int
         select year for left pie chart.
@@ -160,15 +161,17 @@ def create_and_save_pi_chart(data, countries, year1, year2):
     # use a subplot to show two graphs in a single graph
     # create pie chart one
     plt.subplot(1, 2, 1)
-    plt.pie(data.loc[data.index == year1, countries].values.flatten().tolist(),
-            labels=countries, autopct='%1.0f%%', pctdistance=1.1,
+    plt.pie(data.loc[data.index == year1, countrie_list].values.flatten() \
+            .tolist(),
+            labels=countrie_list, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
     plt.title(year1)
 
     # create pie chart two
     plt.subplot(1, 2, 2)
-    plt.pie(data.loc[data.index == year2, countries].values.flatten().tolist(),
-            labels=countries, autopct='%1.0f%%', pctdistance=1.1,
+    plt.pie(data.loc[data.index == year2, countrie_list].values.flatten() \
+            .tolist(),
+            labels=countrie_list, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
     plt.title(year2)
     plt.suptitle(' CO2 emission ', fontsize=15)
