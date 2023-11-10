@@ -32,8 +32,8 @@ def read_and_prepare_world_co2_data(countrie_list, start_from_yeart,
     """
 
     # read csv using pandas
-    co2_df = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv", \
-                       skiprows=3, iterator=False)
+    co2_df = pd.read_csv("API_EN.ATM.CO2E.KT_DS2_en_csv_v2_5994970.csv",
+                         skiprows=3, iterator=False)
 
     years_column_list = np.arange(
         start_from_yeart, (end_to_year+1)).astype(str)
@@ -41,7 +41,7 @@ def read_and_prepare_world_co2_data(countrie_list, start_from_yeart,
 
     # Filter data: select only specific countries and years
     df_selected = co2_df.loc[co2_df["Country Name"].isin(countrie_list),
-                           all_cols_list]
+                             all_cols_list]
 
     # Transpose
     df_t = pd.DataFrame.transpose(df_selected)
@@ -79,18 +79,19 @@ def read_and_prepare_ev_data(region, start_from_yeart, end_to_year):
     """
 
     # read csv using pandas
-    ev_df = pd.read_csv("IEA-EV-dataEV salesHistoricalCars.csv", iterator=False)
+    ev_df = pd.read_csv(
+        "IEA-EV-dataEV salesHistoricalCars.csv", iterator=False)
 
     # filter data and select only required column
     df_selected = ev_df.loc[(ev_df["region"] == region)
-                           & (ev_df["category"] == "Historical")
-                           & (ev_df["parameter"] == "EV sales")
-                           & (ev_df["mode"] == "Cars")
-                           & (ev_df["powertrain"].isin(["PHEV", "BEV"]))
-                           & (ev_df["unit"] == "Vehicles")
-                           & (ev_df["year"] >= start_from_yeart)
-                           & (ev_df["year"] <= end_to_year),
-                           ["powertrain", "year", "value"]]
+                            & (ev_df["category"] == "Historical")
+                            & (ev_df["parameter"] == "EV sales")
+                            & (ev_df["mode"] == "Cars")
+                            & (ev_df["powertrain"].isin(["PHEV", "BEV"]))
+                            & (ev_df["unit"] == "Vehicles")
+                            & (ev_df["year"] >= start_from_yeart)
+                            & (ev_df["year"] <= end_to_year),
+                            ["powertrain", "year", "value"]]
 
     # scale the number of ev sales into millions
     df_selected["value_million"] = df_selected["value"]/1000000
@@ -161,7 +162,7 @@ def create_and_save_pi_chart(data, countrie_list, year1, year2):
     # use a subplot to show two graphs in a single graph
     # create pie chart one
     plt.subplot(1, 2, 1)
-    plt.pie(data.loc[data.index == year1, countrie_list].values.flatten() \
+    plt.pie(data.loc[data.index == year1, countrie_list].values.flatten()
             .tolist(),
             labels=countrie_list, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
@@ -169,7 +170,7 @@ def create_and_save_pi_chart(data, countrie_list, year1, year2):
 
     # create pie chart two
     plt.subplot(1, 2, 2)
-    plt.pie(data.loc[data.index == year2, countrie_list].values.flatten() \
+    plt.pie(data.loc[data.index == year2, countrie_list].values.flatten()
             .tolist(),
             labels=countrie_list, autopct='%1.0f%%', pctdistance=1.1,
             labeldistance=1.25, textprops={'fontsize': 10}, radius=0.9)
